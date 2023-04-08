@@ -2,6 +2,20 @@
     "id": 1,
     "child": {
         "id": 1,
-        "name": "Ichiro"
-    }
+        "name": "Ichiro",
+        "pets": [
+            {
+                "type": "alligator",
+                "age": 7,
+                "name": "Robert"
+            }
+        ]
+    },
+    "pets": [
+        {
+            "type": "alligator",
+            "age": 7,
+            "name": "Robert"
+        }
+    ]
 }

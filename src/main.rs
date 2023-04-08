@@ -21,7 +21,16 @@ fn parse_json(filename: &str) -> HashMap<String, Value> {
 fn main() {
     // let t: TestStruct = serde_json::from_str(&data).expect("failed to parse json data");
     let parsed = parse_json("./test.json");
-    for (key, _) in parsed.iter() {
-        println!("{}", key)
+    let mut keys: Vec<_> = parsed.keys().clone().collect();
+    for (_, value) in parsed.iter() {
+        if value.is_object() {
+            // println!("{:?}", value);
+        }
+        else if value.is_array() {
+            // println!("{:?}", value);
+        }
+    }
+    for k in keys.iter() {
+        println!("{}", &k);
     }
 }
