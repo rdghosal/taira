@@ -18,31 +18,37 @@ fn json_to_map(filename: &str) -> Map<String, Value> {
     serde_json::from_str(&data).expect("Failed to read json file: {filename}")
 }
 
-fn parse_json_map(parent: &mut Map<String, Value>, current_idx: Option<usize>) {
-    for (k, v) in parent.iter() {
-        if v.is_object() {
-            let mut next: Map<String, Value> = v.as_object().unwrap().clone();
-            parse_json_map(&mut next, None);
-        }
-        else if v.is_array() {
-            for (i, element) in v.as_array().unwrap().iter().enumerate() {
-                let mut next: Map<String, Value> = element.as_object().expect("not an obj!").clone();
-                parse_json_map(&mut next, Some(i));
-            }
-        }
-        else {
-            continue;
+fn parse_json_map(
+    current: &mut Map<String, Value>,
+    parent: Option<&mut Map<String, Value>>, 
+    current_idx: Option<usize>) {
+
+    for (k, v) in current.clone().iter_mut() {
+        match v {
+            Value::Object(next) => {
+                parse_json_map(next, Some(current), None);
+            },
+            Value::Array(array) => {
+                for (i, element) in array.iter_mut().enumerate() {
+                    if let Value::Object(next) = element {
+                        parse_json_map(next, Some(current), Some(i));
+                    } else {
+                        println!("error!");
+                    }
+                }
+            },
+            // todo
+            _ => ()
         }
     }
 }
-
-
-
 
 fn main() {
     // let t: TestStruct = serde_json::from_str(&data).expect("failed to parse json data");
     //
     let mut map = json_to_map("./test.json");
-    parse_json_map(&mut map, None);
-
+    parse_json_map(&mut map, None, None);
+    for k in map.keys() {
+        println!("{}", k);
+    }
 }
