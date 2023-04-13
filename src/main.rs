@@ -1,16 +1,5 @@
-use std::{borrow::BorrowMut, fs};
-
-// use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-use std::collections::HashMap;
-
-// #![feature(type_name_of_val)]
-// use std::any::type_name_of_val;
-
-// #[derive(Serialize, Deserialize)]
-// struct TestStruct {
-//     test: i32,
-// }
+use std::fs;
 
 fn json_to_map(filename: &str) -> Map<String, Value> {
     let data = fs::read_to_string(filename).expect("failed to read file");
@@ -38,11 +27,13 @@ fn parse_json_map(
                     }
                 }
             }
-            // todo
             _ => {
                 if let Option::Some(p) = parent {
                     println!("inserting {}: {}", k, v);
-                    p.insert(format!("{}_{}", prefix.unwrap(), k.to_string()), v.clone());
+                    p.insert(
+                        format!("{}_{}", prefix.unwrap_or(k), k.to_string()),
+                        v.clone(),
+                    );
                 }
             }
         }
@@ -50,7 +41,6 @@ fn parse_json_map(
 }
 
 fn main() {
-    // let t: TestStruct = serde_json::from_str(&data).expect("failed to parse json data");
     let mut map = json_to_map("./test.json");
     parse_json_map(&mut map, &mut None, None);
     for k in map.keys() {
