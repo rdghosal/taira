@@ -20,7 +20,8 @@ fn parse_json_map(
             Value::Array(array) => {
                 for (i, element) in array.iter_mut().enumerate() {
                     if let Value::Object(next) = element {
-                        parse_json_map(next, &mut Some(current), Some(&i.to_string()));
+                        let prefix = format!("{}[{}]", k.to_string(), i.to_string());
+                        parse_json_map(next, &mut Some(current), Some(&prefix));
                         current.remove(k);
                     } else {
                         println!("error!");
@@ -31,7 +32,7 @@ fn parse_json_map(
                 if let Option::Some(p) = parent {
                     println!("inserting {}: {}", k, v);
                     p.insert(
-                        format!("{}_{}", prefix.unwrap_or(k), k.to_string()),
+                        format!("{}_{}", prefix.unwrap_or(&""), k.to_string()),
                         v.clone(),
                     );
                 }
@@ -47,4 +48,8 @@ fn main() {
         println!("{}", k);
         println!("{}", map[k]);
     }
+    fs::write(
+        "./results.json",
+        serde_json::to_string_pretty(&map).unwrap(),
+    );
 }
