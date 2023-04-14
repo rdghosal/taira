@@ -1,7 +1,8 @@
 use serde_json::{Map, Value};
-use std::fs;
+use std::{env, fs};
 
 fn json_to_map(filename: &str) -> Map<String, Value> {
+    log::info!("reading file: {}", filename);
     let data = fs::read_to_string(filename).expect("failed to read file");
     serde_json::from_str(&data).expect("Failed to read json file: {filename}")
 }
@@ -24,17 +25,20 @@ fn parse_json_map(
                         parse_json_map(next, &mut Some(current), Some(&prefix));
                         current.remove(k);
                     } else {
-                        println!("error!");
+                        log::error!("reached invalid child element");
                     }
                 }
             }
             _ => {
                 if let Option::Some(p) = parent {
-                    println!("inserting {}: {}", k, v);
-                    p.insert(
-                        format!("{}_{}", prefix.unwrap_or(&""), k.to_string()),
-                        v.clone(),
-                    );
+                    let fkey = format!("{}_{}", prefix.unwrap_or(&""), k.to_string());
+                    if !p.contains_key(&fkey) {
+                        // fixme: producing duplicate logs...
+                        log::info!("inserting {}: {}", fkey, v);
+                        p.insert(fkey, v.clone());
+                    } else {
+                        log::warn!("skipping insert duplicate key {fkey}: {v}");
+                    }
                 }
             }
         }
@@ -42,14 +46,14 @@ fn parse_json_map(
 }
 
 fn main() {
-    let mut map = json_to_map("./test.json");
+    env_logger::init();
+    let args: Vec<String> = env::args().collect();
+    let mut map = json_to_map(&args[1]);
     parse_json_map(&mut map, &mut None, None);
-    for k in map.keys() {
-        println!("{}", k);
-        println!("{}", map[k]);
-    }
     fs::write(
         "./results.json",
         serde_json::to_string_pretty(&map).unwrap(),
-    );
+    )
+    .expect("failed to save results!");
+    log::info!("done!");
 }
